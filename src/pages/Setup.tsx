@@ -25,6 +25,7 @@ export default function Setup({ navigation }: StackScreenProps<any>) {
         longitudeDelta: 0.004,
     });
     const [mapLocked, setMapLocked] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
         tryGetCurrentPosition()
@@ -58,7 +59,7 @@ export default function Setup({ navigation }: StackScreenProps<any>) {
         getGitHubUserInfo(username)
             .catch((err) => {
                 if (axios.isAxiosError(err) && err.response?.status == 404) {
-                    return Promise.reject('There is no such username on GitHub.');
+                    return Promise.reject('There is no such username on GitHub. Please try again.');
                 } else {
                     return Promise.reject(err);
                 }
@@ -78,7 +79,14 @@ export default function Setup({ navigation }: StackScreenProps<any>) {
                 setMapLocked(false);
                 navigation.replace('Main');
             })
-            .catch((err) => Alert.alert(String(err)))
+            .catch((err) => {
+                if (typeof err === 'string') {
+                    setErrorMessage(err);
+                } else {
+                    setErrorMessage('Something went wrong. Please try again.');
+                }
+            })
+
             .finally(() => setIsAuthenticating(false));
     }
 
@@ -112,8 +120,17 @@ export default function Setup({ navigation }: StackScreenProps<any>) {
                             autoCapitalize="none"
                             autoCorrect={false}
                             placeholder="Enter your GitHub username"
-                            onChangeText={setUsername}
+                            onChangeText={(text) => {
+                                setUsername(text);
+                                setErrorMessage(null);
+                            }}
                         />
+                        {errorMessage && (
+                            <View style={styles.errorBox}>
+                                <Text style={styles.errorText}>{errorMessage}</Text>
+                            </View>
+                        )}
+
                         <BigButton testID="button" onPress={handleSignUp} label="Sign Up" color="#031A62" />
                     </View>
                 </KeyboardAvoidingView>
@@ -129,6 +146,23 @@ export default function Setup({ navigation }: StackScreenProps<any>) {
 }
 
 const styles = StyleSheet.create({
+    errorBox: {
+        backgroundColor: '#fff',
+        borderColor: '#cc0000',
+        borderWidth: 1,
+        borderRadius: 4,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        marginBottom: 16,
+        width: '100%',
+    },
+
+    errorText: {
+        color: '#cc0000',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+
     formOverlay: {
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         borderRadius: 16,
