@@ -1,4 +1,4 @@
-import { Alert, KeyboardAvoidingView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, StyleSheet, TextInput, View, Text } from 'react-native';
 import { DEFAULT_LOCATION, tryGetCurrentPosition } from '../utils/location';
 import MapView, { LatLng, MapPressEvent, Marker, PoiClickEvent, Region } from 'react-native-maps';
 import React, { useContext, useEffect, useState } from 'react';
@@ -24,6 +24,7 @@ export default function Setup({ navigation }: StackScreenProps<any>) {
         latitudeDelta: 0.004,
         longitudeDelta: 0.004,
     });
+    const [mapLocked, setMapLocked] = useState(true);
 
     useEffect(() => {
         tryGetCurrentPosition()
@@ -74,6 +75,7 @@ export default function Setup({ navigation }: StackScreenProps<any>) {
             )
             .then(() => {
                 authenticationContext?.setValue(username);
+                setMapLocked(false);
                 navigation.replace('Main');
             })
             .catch((err) => Alert.alert(String(err)))
@@ -98,16 +100,22 @@ export default function Setup({ navigation }: StackScreenProps<any>) {
                 >
                     <Marker coordinate={markerLocation} />
                 </MapView>
+
+                {mapLocked && <View pointerEvents="auto" style={styles.mapBlocker} />}
+
                 <KeyboardAvoidingView style={styles.form} behavior="position">
-                    <TextInput
-                        testID="input"
-                        style={styles.input}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        placeholder="Insert your GitHub username"
-                        onChangeText={setUsername}
-                    />
-                    <BigButton testID="button" onPress={handleSignUp} label="Sign Up" color="#031A62" />
+                    <View style={styles.formOverlay}>
+                        <Text style={styles.title}>Welcome to DevFinder</Text>
+                        <TextInput
+                            testID="input"
+                            style={styles.input}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            placeholder="Enter your GitHub username"
+                            onChangeText={setUsername}
+                        />
+                        <BigButton testID="button" onPress={handleSignUp} label="Sign Up" color="#031A62" />
+                    </View>
                 </KeyboardAvoidingView>
             </View>
             <Spinner
@@ -121,6 +129,40 @@ export default function Setup({ navigation }: StackScreenProps<any>) {
 }
 
 const styles = StyleSheet.create({
+    formOverlay: {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 16,
+        paddingVertical: 32,
+        paddingHorizontal: 24,
+        width: '100%',
+        maxWidth: 360,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
+        borderWidth: 1,
+        borderColor: '#ddd',
+    },
+
+    title: {
+        fontSize: 20,
+        marginBottom: 16,
+        color: '#031A62',
+        fontWeight: 'bold',
+    },
+
+    mapBlocker: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+        backgroundColor: '#ffffffdd',
+    },
+
     container: {
         flex: 1,
     },
@@ -131,10 +173,14 @@ const styles = StyleSheet.create({
 
     form: {
         position: 'absolute',
-        right: 0,
-        left: 0,
+        top: 0,
         bottom: 0,
-        padding: 24,
+        left: 0,
+        right: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        zIndex: 20,
     },
 
     spinnerText: {

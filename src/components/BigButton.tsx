@@ -25,16 +25,14 @@ export default function BigButton(props: BigButtonProps) {
 function styling(color: string) {
     return StyleSheet.create({
         button: {
+            backgroundColor: color,
+            borderRadius: 4,
             paddingVertical: 14,
             paddingHorizontal: 32,
-            backgroundColor: color,
-            maxHeight: 56,
-            borderRadius: 4,
-
-            flexDirection: 'row',
-            justifyContent: 'center',
             alignItems: 'center',
-            flex: 1,
+            justifyContent: 'center',
+            minHeight: 48,
+            width: '100%',
         },
 
         icon: {
@@ -43,6 +41,8 @@ function styling(color: string) {
 
         label: {
             color: '#FFF',
+            fontSize: 16,
+            fontWeight: 'bold',
         },
     });
 }
